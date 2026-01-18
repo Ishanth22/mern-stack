@@ -46,3 +46,41 @@ exports.addFood = async (req, res) => {
     });
   }
 };
+const mongoose = require("mongoose");
+
+exports.getRestaurantMenu = async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+
+    if (!restaurantId) {
+      return res.status(400).json({
+        success: false,
+        message: "restaurantId is required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid restaurantId",
+      });
+    }
+
+    const foodItems = await Food.find({
+      restaurant: restaurantId,
+      isAvailable: true,
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: foodItems.length,
+      foodItems,
+    });
+  } catch (error) {
+    console.error("GET MENU ERROR:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
